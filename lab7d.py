@@ -1,55 +1,45 @@
 #!/usr/bin/env python3
-# Student ID: [seneca_id] 
+# Student ID: dmbenjamin 
 class Time:
-    """Simple object type for time of the day.
-        data attributes: hour, minute, second
-        function attributes: __init__, __str__, __repr__
-                            time_to_sec, format_time,
-                            change_time, sum_time
-    """
-    def __init__(self,hour=12,minute=0,second=0):
-        """constructor for time object""" 
-        self.hour = hour
+    """Time of day (24-hour clock)."""
+    def __init__(self, hour: int = 12, minute: int = 0, second: int = 0):
+        # Just store what we’re given; validity is checked by valid_time()
+        self.hour   = hour
         self.minute = minute
         self.second = second
+    
+    def __str__(self) -> str:          # called by print()
+        return self.format_time()
 
-    def format_time(self):
-        """Return time object (t) as a formatted string"""
-        return f'{self.hour:02d}:{self.minute:02d}:{self.second:02d}'
+    __repr__ = __str__                 # so the REPL shows the same string
 
-    def sum_times(self, t2):
-        """Add two time objests and return the sum."""
-        self_sec = self.time_to_sec()
-        t2_sec = t2.time_to_sec()
-        sum = sec_to_time(self_sec + t2_sec)
-        return sum
 
-    def change_time(self, seconds):
-        time_seconds = self.time_to_sec()
-        nt = sec_to_time(time_seconds + seconds)
-        self.hour, self.minute, self.second = nt.hour, nt.minute, nt.second 
-        return None
+    def format_time(self) -> str:
+        """Return self as 'HH:MM:SS'."""
+        return f"{self.hour:02d}:{self.minute:02d}:{self.second:02d}"
 
-    def time_to_sec(self):
-        '''convert a time object to a single integer representing the 
-        number of seconds from mid-night'''
-        minutes = self.hour * 60 + self.minute
-        seconds = minutes * 60 + self.second
-        return seconds
+    def time_to_sec(self) -> int:
+        """Seconds since 00:00:00."""
+        return self.hour * 3600 + self.minute * 60 + self.second
 
-    def valid_time(self):
-        """check for the validity of the time object attributes:
-        24 > hour > 0, 60 > minute > 0, 60 > second > 0 """
-        if self.hour < 0 or self.minute < 0 or self.second < 0:
-            return False
-        if self.minute >= 60 or self.second >= 60 or self.hour >= 24:
-            return False
-        return True
+    def valid_time(self) -> bool:
+        return 0 <= self.hour < 24 and 0 <= self.minute < 60 and 0 <= self.second < 60
 
-def sec_to_time(seconds):
-    '''convert a given number of seconds to a time object in 
-        hour, minute, second format'''
-    time = Time()
-    minutes, time.second = divmod(seconds, 60)
-    time.hour, time.minute = divmod(minutes, 60)
-    return time
+   
+    def change_time(self, seconds: int) -> None:
+        """In-place add (or subtract) seconds."""
+        nt = sec_to_time(self.time_to_sec() + seconds)
+        self.hour, self.minute, self.second = nt.hour, nt.minute, nt.second
+
+    def sum_times(self, other: "Time") -> "Time":
+        """Return a NEW Time = self + other (pure, does NOT mutate)."""
+        return sec_to_time(self.time_to_sec() + other.time_to_sec())
+
+
+
+def sec_to_time(seconds: int) -> Time:
+    """Convert absolute seconds (mod 86 400) → Time object."""
+    seconds %= 86_400
+    minutes, sec = divmod(seconds, 60)
+    hour, minute = divmod(minutes, 60)
+    return Time(hour, minute, sec)
